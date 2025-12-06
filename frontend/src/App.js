@@ -13,7 +13,8 @@ import AdminAddTour from './pages/AdminAddTour';
 import AdminAllTours from './pages/AdminAllTours';
 import HomePage from './pages/HomePage';
 import AdminEditTour from './pages/AdminEditTour';
-import AdminAllBookings from './pages/AdminAllBookings'; // Import vào
+import AdminAllBookings from './pages/AdminAllBookings';
+import BookingPage from './pages/BookingPage';
 
 function App() {
   return (
@@ -23,7 +24,8 @@ function App() {
 
       <Routes>
         <Route path="/" element={<HomePage/>} />
-        <Route path="/tours" element={<h1 className="text-center mt-5">Danh sách Tours (Khách xem)</h1>} />
+        <Route path="/tours" element={<HomePage/>} />
+        <Route path="/booking/:id" element={<BookingPage />} />
         
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

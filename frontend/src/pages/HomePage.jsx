@@ -1,255 +1,102 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import axios from "axios";
+import { Link } from "react-router-dom";
+import { BASE_URL, SERVER_URL } from "../utils/config";
 
-// ======= DATA MẪU =========
-const mockTours = [
-  {
-    id: 1,
-    name: "Tour Đà Lạt 3N2Đ",
-    image: "https://picsum.photos/300/200",
-    price: 3500000,
-    location: "Đà Lạt",
-    days: 3,
-    startDate: "2025-01-10",
-    maxGuests: 20,
-    description: "Trải nghiệm khí hậu se lạnh, tham quan đồi chè, đồi thiên phúc.",
-  },
-  {
-    id: 2,
-    name: "Tour Phú Quốc 4N3Đ",
-    image: "https://picsum.photos/300/201",
-    price: 5500000,
-    location: "Phú Quốc",
-    days: 4,
-    startDate: "2025-02-05",
-    maxGuests: 25,
-    description: "Khám phá đảo ngọc, câu cá, lặn biển ngắm san hô.",
-  },
-  {
-    id: 3,
-    name: "Tour Thái Lan 5N4Đ",
-    image: "https://picsum.photos/300/202",
-    price: 8900000,
-    location: "Bangkok - Pattaya",
-    days: 5,
-    startDate: "2025-03-12",
-    maxGuests: 30,
-    description: "Du lịch nước ngoài giá tốt, khám phá chùa Vàng, phố đi bộ.",
-  },
-];
-
-// =============== COMPONENT ===================
 export default function HomePage() {
-  const [tours, setTours] = useState(mockTours);
+  const [tours, setTours] = useState([]);
+  const [search, setSearch] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [city, setCity] = useState("");
 
-  // Lọc
-  const [filterPrice, setFilterPrice] = useState("");
-  const [filterLocation, setFilterLocation] = useState("");
-  const [filterDays, setFilterDays] = useState("");
+  useEffect(() => {
+    const loadTours = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/tours`);
+        setTours(res.data.data || []);
+      } catch (e) {
+        setTours([]);
+      }
+    };
+    loadTours();
+  }, []);
 
-  // Modal đặt tour
-  const [selectedTour, setSelectedTour] = useState(null);
-  const [bookingInfo, setBookingInfo] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    quantity: 1,
-  });
-
-  // ================== FILTER FUNCTION ===================
-  const handleFilter = () => {
-    let filtered = mockTours;
-
-    if (filterPrice)
-      filtered = filtered.filter((t) => t.price <= parseInt(filterPrice));
-
-    if (filterLocation)
-      filtered = filtered.filter((t) =>
-        t.location.toLowerCase().includes(filterLocation.toLowerCase())
-      );
-
-    if (filterDays)
-      filtered = filtered.filter((t) => t.days == filterDays);
-
-    setTours(filtered);
-  };
-
-  // ================== HANDLE BOOKING ===================
-  const handleBookingSubmit = () => {
-    alert(`
-    ĐẶT TOUR THÀNH CÔNG!
-    Tour: ${selectedTour.name}
-    Khách: ${bookingInfo.name}
-    Email: ${bookingInfo.email}
-    Số lượng: ${bookingInfo.quantity}
-    Tổng tiền: ${bookingInfo.quantity * selectedTour.price} VNĐ
-    `);
-
-    // Reset form
-    setBookingInfo({ name: "", email: "", phone: "", quantity: 1 });
-    setSelectedTour(null);
-  };
+  const filteredTours = useMemo(() => {
+    return (tours || []).filter((t) => {
+      const matchSearch = search
+        ? t.title.toLowerCase().includes(search.toLowerCase()) ||
+          t.city.toLowerCase().includes(search.toLowerCase())
+        : true;
+      const matchCity = city ? t.city.toLowerCase().includes(city.toLowerCase()) : true;
+      const matchPrice = maxPrice ? Number(t.price) <= Number(maxPrice) : true;
+      return matchSearch && matchCity && matchPrice;
+    });
+  }, [tours, search, city, maxPrice]);
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "20px", maxWidth: 1200, margin: "0 auto" }}>
       <h2>Danh Mục Tour Du Lịch</h2>
 
-      {/* ========== FILTER SECTION ========== */}
-      <div style={{ marginTop: 20, marginBottom: 25 }}>
-        <h3>Lọc Tour</h3>
-
-        <div style={{ display: "flex", gap: 15 }}>
-          <input
-            type="number"
-            placeholder="Giá tối đa"
-            value={filterPrice}
-            onChange={(e) => setFilterPrice(e.target.value)}
-          />
-
-          <input
-            type="text"
-            placeholder="Địa điểm"
-            value={filterLocation}
-            onChange={(e) => setFilterLocation(e.target.value)}
-          />
-
-          <input
-            type="number"
-            placeholder="Số ngày"
-            value={filterDays}
-            onChange={(e) => setFilterDays(e.target.value)}
-          />
-
-          <button onClick={handleFilter}>Lọc</button>
-        </div>
+      <div style={{ marginTop: 20, marginBottom: 25, display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
+        <input
+          type="text"
+          placeholder="Tìm theo tên/địa điểm"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Thành phố"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Giá tối đa"
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value)}
+        />
       </div>
 
-      {/* ========== TOUR LIST ========== */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
           gap: "20px",
         }}
       >
-        {tours.map((tour) => (
+        {filteredTours.map((tour) => (
           <div
-            key={tour.id}
+            key={tour._id}
             style={{
               border: "1px solid #ccc",
               borderRadius: 8,
               padding: 15,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              maxWidth: 420,
+              margin: "0 auto",
             }}
           >
             <img
-              src={tour.image}
-              alt={tour.name}
-              style={{ width: "100%", borderRadius: 6 }}
+              src={tour.photo?.startsWith('http') ? tour.photo : `${SERVER_URL}${tour.photo}`}
+              alt={tour.title}
+              style={{ width: "100%", borderRadius: 6, height: 220, objectFit: "cover" }}
             />
 
-            <h3>{tour.name}</h3>
+            <h3 style={{ marginTop: 10 }}>{tour.title}</h3>
 
-            <p>📍 {tour.location}</p>
-            <p>⏱ {tour.days} ngày</p>
-            <p>💰 {tour.price.toLocaleString()} VNĐ</p>
-            <p>🚩 Khởi hành: {tour.startDate}</p>
+            <p>📍 {tour.city}</p>
+            <p>💰 {Number(tour.price).toLocaleString()} VNĐ</p>
+            <p>🚩 Khởi hành: {new Date(tour.startDate).toLocaleDateString('vi-VN')}</p>
 
-            <button onClick={() => setSelectedTour(tour)}>
+            <Link to={`/booking/${tour._id}`} className="btn btn-primary w-100">
               Đặt Tour
-            </button>
+            </Link>
           </div>
         ))}
       </div>
 
-      {/* ========== MODAL ĐẶT TOUR ========== */}
-      {selectedTour && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.3)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: "white",
-              padding: 25,
-              borderRadius: 8,
-              width: 400,
-            }}
-          >
-            <h2>Đặt Tour: {selectedTour.name}</h2>
-
-            <input
-              type="text"
-              placeholder="Họ tên"
-              value={bookingInfo.name}
-              onChange={(e) =>
-                setBookingInfo({ ...bookingInfo, name: e.target.value })
-              }
-            />
-
-            <input
-              type="email"
-              placeholder="Email"
-              style={{ marginTop: 10 }}
-              value={bookingInfo.email}
-              onChange={(e) =>
-                setBookingInfo({ ...bookingInfo, email: e.target.value })
-              }
-            />
-
-            <input
-              type="text"
-              placeholder="Số điện thoại"
-              style={{ marginTop: 10 }}
-              value={bookingInfo.phone}
-              onChange={(e) =>
-                setBookingInfo({ ...bookingInfo, phone: e.target.value })
-              }
-            />
-
-            <input
-              type="number"
-              min="1"
-              style={{ marginTop: 10 }}
-              placeholder="Số người"
-              value={bookingInfo.quantity}
-              onChange={(e) =>
-                setBookingInfo({ ...bookingInfo, quantity: e.target.value })
-              }
-            />
-
-            <p style={{ marginTop: 10 }}>
-              👉 Tổng tiền:{" "}
-              <b>
-                {(bookingInfo.quantity * selectedTour.price).toLocaleString()}{" "}
-                VNĐ
-              </b>
-            </p>
-
-            <button
-              onClick={handleBookingSubmit}
-              style={{ marginTop: 10, width: "100%" }}
-            >
-              Xác nhận đặt tour
-            </button>
-
-            <button
-              style={{ marginTop: 10, width: "100%" }}
-              onClick={() => setSelectedTour(null)}
-            >
-              Hủy
-            </button>
-          </div>
-        </div>
-      )}
+      {filteredTours.length === 0 && <p className="mt-3">Không tìm thấy tour phù hợp.</p>}
     </div>
   );
 }

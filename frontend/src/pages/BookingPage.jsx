@@ -1,5 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { BASE_URL, SERVER_URL } from '../utils/config';
+import { AuthContext } from '../context/AuthContext';
 
 const BookingPage = () => {
   const { id } = useParams();
@@ -14,19 +17,25 @@ const BookingPage = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     const loadTour = async () => {
       try {
-        const res = await fetch(`/api/v1/tours/${id}`);
-        const json = await res.json();
-        setTour(json.data || null);
+        const res = await axios.get(`${BASE_URL}/tours/${id}`);
+        setTour(res.data.data || null);
       } catch (e) {
         setTour(null);
       }
     };
     loadTour();
   }, [id]);
+
+  useEffect(() => {
+    if (user) {
+      setForm(prev => ({ ...prev, fullName: user.username || prev.fullName, userEmail: user.email || prev.userEmail }));
+    }
+  }, [user]);
 
   const totalPrice = useMemo(() => {
     if (!tour) return 0;
@@ -45,26 +54,20 @@ const BookingPage = () => {
     setSubmitting(true);
     setError('');
     try {
-      const res = await fetch('/api/v1/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tourId: id,
-          fullName: form.fullName,
-          userEmail: form.userEmail,
-          phone: form.phone,
-          guestSize: form.guestSize,
-          bookAt: form.bookAt
-        })
+      const res = await axios.post(`${BASE_URL}/bookings`, {
+        tourId: id,
+        fullName: form.fullName,
+        userEmail: form.userEmail,
+        phone: form.phone,
+        guestSize: Number(form.guestSize),
+        bookAt: form.bookAt
+      }, {
+        withCredentials: true
       });
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.message || 'Đặt tour thất bại');
-      }
-      alert(`Đặt tour thành công! Tổng giá: ${Number(json.data.totalPrice).toLocaleString('vi-VN')} VNĐ`);
+      alert(`Đặt tour thành công! Tổng giá: ${Number(res.data.data.totalPrice).toLocaleString('vi-VN')} VNĐ`);
       navigate('/');
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message);
     } finally {
       setSubmitting(false);
     }
@@ -76,6 +79,11 @@ const BookingPage = () => {
     <div style={{ padding: 24, maxWidth: 720, margin: '0 auto' }}>
       <h1>Đặt Tour: {tour.title}</h1>
       <p><strong>Giá / người:</strong> {Number(tour.price).toLocaleString('vi-VN')} VNĐ</p>
+      <img
+        src={tour.photo?.startsWith('http') ? tour.photo : `${SERVER_URL}${tour.photo}`}
+        alt={tour.title}
+        style={{ width: '100%', maxHeight: 300, objectFit: 'cover', borderRadius: 8, marginBottom: 12 }}
+      />
 
       <form onSubmit={onSubmit} style={{ display: 'grid', gap: 12 }}>
         <label>

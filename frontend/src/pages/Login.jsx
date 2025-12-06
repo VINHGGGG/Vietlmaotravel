@@ -23,13 +23,12 @@ const Login = () => {
     dispatch({ type: "LOGIN_START" });
 
     try {
-      const res = await axios.post(`${BASE_URL}/auth/login`, credentials);
+      const res = await axios.post(
+        `${BASE_URL}/auth/login`,
+        credentials,
+        { withCredentials: true }
+      );
 
-      // --- SỬA ĐOẠN NÀY ---
-      // Cũ: dispatch({ type: "LOGIN_SUCCESS", payload: res.data.data });
-      // Lỗi: res.data.data không chứa role.
-      
-      // Mới: Gộp cả data và role vào chung 1 object User
       const userInfo = { ...res.data.data, role: res.data.role }; 
       dispatch({ type: "LOGIN_SUCCESS", payload: userInfo }); 
       // --------------------

@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema(
   {
+    tourId: {
+      type: String,
+      required: true,
+    },
     userId: {
       type: String, // ID của người đặt (nếu họ đã đăng nhập)
     },
@@ -23,6 +27,10 @@ const bookingSchema = new mongoose.Schema(
     phone: {
       type: Number,
       required: true,
+    },
+    totalPrice: {
+      type: Number,
+      default: 0,
     },
     bookAt: {
       type: Date,

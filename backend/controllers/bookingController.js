@@ -36,13 +36,13 @@ exports.updateBooking = async (req, res) => {
 exports.createBooking = async (req, res) => {
   try {
     const {
-      userId,
-      userEmail,
-      tourName,
+      tourId,
       fullName,
       guestSize,
       phone,
       bookAt,
+      userId,
+      userEmail,
       status,
       isPaid
     } = {
@@ -50,8 +50,8 @@ exports.createBooking = async (req, res) => {
       guestSize: req.body.guestSize ?? req.body.numPeople
     };
 
-    const required = ['tourName', 'fullName', 'guestSize', 'phone', 'bookAt'];
-    const missing = required.filter(k => !({ tourName, fullName, guestSize, phone, bookAt }[k]));
+    const required = ['tourId', 'fullName', 'guestSize', 'phone', 'bookAt'];
+    const missing = required.filter(k => !({ tourId, fullName, guestSize, phone, bookAt }[k]));
     if (missing.length) {
       return res.status(400).json({
         success: false,
@@ -59,16 +59,25 @@ exports.createBooking = async (req, res) => {
       });
     }
 
+    const tour = await Tour.findById(tourId);
+    if (!tour) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy tour đã chọn' });
+    }
+
+    const totalPrice = Number(tour.price || 0) * Number(guestSize || 0);
+
     const newBooking = await Booking.create({
-      userId,
-      userEmail,
-      tourName,
+      tourId,
+      tourName: tour.title,
       fullName,
       guestSize,
       phone,
       bookAt,
+      userId,
+      userEmail,
       status,
-      isPaid
+      isPaid,
+      totalPrice
     });
 
     res.status(201).json({

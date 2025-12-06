@@ -14,7 +14,8 @@ const path = require('path');
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 8000;
+// Đồng bộ với BASE_URL phía frontend (http://localhost:4000)
+const port = process.env.PORT || 4000;
 
 // Cấu hình tắt cảnh báo của Mongoose (Best practice)
 mongoose.set("strictQuery", false);
