@@ -23,30 +23,26 @@ const Login = () => {
     dispatch({ type: "LOGIN_START" });
 
     try {
-      const res = await axios.post(`${BASE_URL}/auth/login`, credentials, {
-        headers: { "Content-Type": "application/json" },
-        withCredentials: true,
-      });
+      const res = await axios.post(`${BASE_URL}/auth/login`, credentials);
 
-      const data = res?.data || {};
-      const user = data?.data || null;
-      const role = data?.role || user?.role || "user";
+      // --- SỬA ĐOẠN NÀY ---
+      // Cũ: dispatch({ type: "LOGIN_SUCCESS", payload: res.data.data });
+      // Lỗi: res.data.data không chứa role.
+      
+      // Mới: Gộp cả data và role vào chung 1 object User
+      const userInfo = { ...res.data.data, role: res.data.role }; 
+      dispatch({ type: "LOGIN_SUCCESS", payload: userInfo }); 
+      // --------------------
 
-      if (!data.success) {
-        throw new Error(data.message || "Đăng nhập thất bại");
-      }
-
-      dispatch({ type: "LOGIN_SUCCESS", payload: user });
-
-      if (role === "admin") {
-        navigate("/admin/all");
+      if(res.data.role === 'admin') {
+         navigate("/admin/all");
       } else {
-        navigate("/");
+         navigate("/");
       }
+
     } catch (err) {
-      const message = err?.response?.data?.message || err.message || "Có lỗi xảy ra";
-      dispatch({ type: "LOGIN_FAILURE", payload: message });
-      alert("Đăng nhập thất bại: " + message);
+      dispatch({ type: "LOGIN_FAILURE", payload: err.response.data.message });
+      alert("Đăng nhập thất bại: " + err.response.data.message);
     }
   };
 

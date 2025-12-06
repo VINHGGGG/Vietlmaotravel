@@ -6,6 +6,9 @@ const cookieParser = require('cookie-parser');
 const tourRoute = require('./routes/tour');
 const bookingRoute = require('./routes/booking');  
 const authRoute = require('./routes/auth');
+const multer = require('multer');
+const path = require('path');
+
 
 // Cấu hình dotenv để đọc file .env
 dotenv.config();
@@ -36,6 +39,38 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(cookieParser());
+
+// 1. Cấu hình nơi lưu ảnh và tên ảnh
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/images'); // Lưu vào thư mục này
+    },
+    filename: (req, file, cb) => {
+        // Đặt tên file = thời gian hiện tại + tên gốc (để tránh trùng)
+        cb(null, Date.now() + path.extname(file.originalname)); 
+    }
+});
+
+const upload = multer({ storage: storage });
+
+// 2. Tạo API Upload riêng
+app.post('/api/v1/upload', upload.single('file'), (req, res) => {
+    try {
+        // Trả về đường dẫn ảnh cho Frontend
+        // Ví dụ: /images/16382123.jpg
+        const filePath = `/images/${req.file.filename}`;
+        res.status(200).json({ 
+            success: true, 
+            message: "Upload thành công", 
+            data: filePath 
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Lỗi upload ảnh" });
+    }
+});
+
+// 3. QUAN TRỌNG: Mở quyền truy cập thư mục public (để web xem được ảnh)
+app.use(express.static(path.join(__dirname, 'public'))); // Hoặc app.use('/images', express.static('public/images'));
 
 // Testing route
 app.get('/', (req, res) => {

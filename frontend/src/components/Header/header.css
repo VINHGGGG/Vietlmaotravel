@@ -1,0 +1,49 @@
+/* header.css */
+
+.header {
+  width: 100%;
+  height: 80px;
+  line-height: 80px;
+  /* background: #fff; -> Xóa dòng này đi vì ta set inline trong code rồi */
+  transition: 0.3s;
+}
+
+/* Link mặc định */
+.nav__item a {
+  text-decoration: none;
+  color: #0b2727;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: .3s;
+}
+
+/* Link khi active (đang chọn) */
+.active__link {
+  color: #faa935 !important; /* Màu vàng cam */
+  font-weight: 700 !important;
+  border-bottom: 2px solid #faa935;
+}
+
+/* Custom cho nút đăng nhập/đăng ký */
+.secondary__btn {
+    background: transparent !important;
+    border: none !important;
+    color: #0b2727 !important;
+}
+
+.primary__btn {
+    background: #faa935 !important;
+    border: none !important;
+    color: #fff !important;
+    border-radius: 50px !important;
+    padding: 5px 20px !important;
+}
+
+/* Thêm css cho link trong Admin Header để nó sáng lên trên nền đen */
+.header.bg-dark .nav__item a {
+    color: #e2e2e2; /* Màu xám trắng */
+}
+
+.header.bg-dark .nav__item a:hover {
+    color: #faa935; /* Hover vẫn ra màu cam */
+}

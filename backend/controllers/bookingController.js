@@ -1,21 +1,36 @@
 const Booking = require('../models/Booking');
 const Tour = require('../models/Tour');
 
-exports.getAllBooking = async (req, res) => {
-  try {
-    const bookings = await Booking.find({}).sort({ createdAt: -1 });
-    res.status(200).json({
-      success: true,
-      count: bookings.length,
-      data: bookings
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: 'Lỗi lấy danh sách đặt tour',
-      error: err.message
-    });
-  }
+// 1. Lấy tất cả Booking (Admin xem)
+exports.getAllBooking = async(req,res)=>{
+    try {
+        const books = await Booking.find().sort({ createdAt: -1 }); // Mới nhất lên đầu
+        res.status(200).json({
+            success:true,
+            message:"Thành công",
+            data:books
+        });
+    } catch (err) {
+         res.status(500).json({ success:true, message:"Lỗi server" });
+    }
+}
+
+// 2. Cập nhật trạng thái thanh toán (MỚI)
+exports.updateBooking = async (req, res) => {
+    try {
+        const updatedBooking = await Booking.findByIdAndUpdate(
+            req.params.id, 
+            { $set: req.body }, // Cập nhật isPaid hoặc status
+            { new: true }
+        );
+        res.status(200).json({
+            success: true,
+            message: "Đã cập nhật trạng thái!",
+            data: updatedBooking
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Lỗi cập nhật" });
+    }
 };
 
 exports.createBooking = async (req, res) => {

@@ -68,7 +68,7 @@ exports.getAllTours = async (req, res) => {
 exports.getTourById = async (req, res) => {
   const id = req.params.id;
   try {
-    const tour = await Tour.findById(id).populate('reviews');
+    const tour = await Tour.findById(id);
     if (!tour) return res.status(404).json({ success: false, message: 'Không tìm thấy tour này' });
     res.status(200).json({ success: true, message: 'Thành công', data: tour });
   } catch (err) {

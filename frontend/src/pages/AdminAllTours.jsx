@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Table, Button } from 'react-bootstrap';
+import { Container, Table, Button } from 'react-bootstrap';
 import axios from 'axios';
-import { BASE_URL } from '../utils/config';
+import { Link } from 'react-router-dom';
+import { BASE_URL, SERVER_URL } from '../utils/config'; // <--- Import SERVER_URL
 
 const AdminAllTours = () => {
     const [tours, setTours] = useState([]);
 
-    // Hàm lấy dữ liệu tour từ Backend
     const fetchTours = async () => {
         try {
             const res = await axios.get(`${BASE_URL}/tours`);
             setTours(res.data.data);
         } catch (error) {
-            console.error("Lỗi fetch data:", error);
+            console.error("Lỗi:", error);
         }
     };
 
@@ -20,26 +20,26 @@ const AdminAllTours = () => {
         fetchTours();
     }, []);
 
-    // Hàm xóa tour
     const handleDelete = async (id) => {
-        if(window.confirm("Bạn chắc chắn muốn xóa tour này chứ?")) {
+        if(window.confirm("Bạn chắc chắn muốn xóa?")) {
             try {
                 await axios.delete(`${BASE_URL}/tours/${id}`, { withCredentials: true });
                 alert("Đã xóa!");
-                fetchTours(); // Load lại danh sách sau khi xóa
+                fetchTours();
             } catch (error) {
-                alert("Lỗi xóa tour (Bạn có phải Admin không?)");
+                alert("Lỗi xóa tour");
             }
         }
     };
 
     return (
         <Container className="mt-5">
-            <h2 className="mb-4">Quản lý Tour Du Lịch</h2>
-            <Table striped bordered hover>
+            <h2 className="mb-4">Quản lý Tour</h2>
+            <Table striped bordered hover responsive>
                 <thead>
                     <tr>
                         <th>#</th>
+                        <th>Ảnh</th> {/* <--- Thêm cột Ảnh */}
                         <th>Tên Tour</th>
                         <th>Giá</th>
                         <th>Ngày đi</th>
@@ -48,13 +48,30 @@ const AdminAllTours = () => {
                 </thead>
                 <tbody>
                     {tours.map((tour, index) => (
-                        <tr key={tour._id}>
+                        <tr key={tour._id} className="align-middle">
                             <td>{index + 1}</td>
+                            
+                            {/* --- HIỂN THỊ ẢNH --- */}
+                            <td>
+                                <img 
+                                    src={
+                                        // Kiểm tra nếu link là online (http) thì để nguyên
+                                        // Nếu là link local (/images/...) thì thêm localhost:4000 vào trước
+                                        tour.photo && tour.photo.startsWith('http') 
+                                        ? tour.photo 
+                                        : `${SERVER_URL}${tour.photo}`
+                                    } 
+                                    alt={tour.title} 
+                                    style={{ width: '80px', height: '60px', objectFit: 'cover', borderRadius: '5px' }}
+                                />
+                            </td>
+                            {/* ------------------- */}
+
                             <td>{tour.title}</td>
-                            <td>{tour.price.toLocaleString()} đ</td>
+                            <td>{tour.price?.toLocaleString()} đ</td>
                             <td>{new Date(tour.startDate).toLocaleDateString()}</td>
                             <td>
-                                <Button variant="warning" size="sm" className="me-2">Sửa</Button>
+                                <Link to={`/admin/edit/${tour._id}`} className="btn btn-warning btn-sm me-2">Sửa</Link>
                                 <Button variant="danger" size="sm" onClick={() => handleDelete(tour._id)}>Xóa</Button>
                             </td>
                         </tr>

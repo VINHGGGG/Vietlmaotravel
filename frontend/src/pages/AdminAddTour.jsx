@@ -17,6 +17,13 @@ const AdminAddTour = () => {
     startDate: '',
     featured: false,
   });
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  // Hàm xử lý khi chọn file
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setSelectedFile(file); // Lưu file vào state tạm
+  };
 
   const handleChange = (e) => {
     setTourData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -24,19 +31,43 @@ const AdminAddTour = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      // Gửi request kèm theo credentials (cookie token) nếu đã làm auth
-      const res = await axios.post(`${BASE_URL}/tours`, tourData, {
+      let photoUrl = ""; // Mặc định rỗng
+
+      // BƯỚC 1: Nếu có chọn file, upload file trước
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        // Gọi API upload mà mình vừa viết ở Backend
+        const uploadRes = await axios.post(`${BASE_URL}/upload`, formData, {
+           headers: { "Content-Type": "multipart/form-data" }
+        });
+
+        if(uploadRes.data.success) {
+            photoUrl = uploadRes.data.data; // Lấy đường dẫn: /images/xxx.jpg
+        }
+      }
+
+      // BƯỚC 2: Gán đường dẫn ảnh vào dữ liệu Tour
+      // Nếu không upload ảnh mới thì dùng ảnh mặc định hoặc rỗng
+      const newTourData = { 
+          ...tourData, 
+          photo: photoUrl || tourData.photo 
+      };
+
+      // BƯỚC 3: Tạo tour như bình thường
+      const res = await axios.post(`${BASE_URL}/tours`, newTourData, {
         withCredentials: true, 
       });
 
       if(res.status === 200) {
           alert('Thêm tour thành công!');
-          // Reset form hoặc chuyển trang
       }
+
     } catch (err) {
       alert('Lỗi: ' + err.message);
-      console.log(err);
     }
   };
 
@@ -88,9 +119,16 @@ const AdminAddTour = () => {
                 </Col>
               </Row>
 
+              {/* Thay input text cũ bằng input file */}
               <Form.Group className="mb-3">
-                <Form.Label>Link Ảnh (URL)</Form.Label>
-                <Form.Control type="text" placeholder="https://..." id="photo" onChange={handleChange} required />
+                <Form.Label>Ảnh Tour</Form.Label>
+                {/* type="file" */}
+                <Form.Control 
+                    type="file" 
+                    id="photo" 
+                    onChange={handleFileChange} 
+                    accept="image/*" // Chỉ cho chọn ảnh
+                />
               </Form.Group>
               
               <Form.Group className="mb-3">

@@ -5,11 +5,11 @@ const { verifyAdmin } = require('../utils/verifyToken'); // <--- Import vào
 const router = express.Router();
 
 // Public routes (Ai cũng xem được)
-router.get('/', getAllTours);
 router.get('/:id', getTourById);
+router.get('/', getAllTours);
 
 // Admin routes (Phải có thẻ bài Admin)
-router.post('/', createTour); // <--- Chặn ở đây
+router.post('/', verifyAdmin, createTour); // <--- Chặn ở đây
 router.put('/:id', verifyAdmin, updateTour);
 router.delete('/:id', verifyAdmin, deleteTour);
 
