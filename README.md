@@ -8,6 +8,7 @@ npm install
 node index.js
 
 // Mở trong 2 terminal song song
+
 cd frontend
 npm install
 npm start
