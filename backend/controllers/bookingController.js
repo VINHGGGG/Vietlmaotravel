@@ -1,5 +1,6 @@
 const Booking = require('../models/Booking');
 const Tour = require('../models/Tour');
+const User = require('../models/User'); // Import User model
 
 // 1. Lấy tất cả Booking (Admin xem)
 exports.getAllBooking = async(req,res)=>{
@@ -33,6 +34,35 @@ exports.updateBooking = async (req, res) => {
     }
 };
 
+// 3. Lấy danh sách booking của một user cụ thể
+exports.getBookingByUserId = async (req, res) => {
+    const userId = req.params.id;
+    try {
+        // Tìm user để lấy email
+        const user = await User.findById(userId);
+        let query = { userId: userId };
+        
+        if (user) {
+            // Nếu tìm thấy user, tìm booking theo userId HOẶC userEmail
+            query = {
+                $or: [
+                    { userId: userId },
+                    { userEmail: user.email }
+                ]
+            };
+        }
+
+        const bookings = await Booking.find(query).sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            message: "Thành công",
+            data: bookings
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Lỗi server" });
+    }
+};
+
 exports.createBooking = async (req, res) => {
   try {
     const {
@@ -62,6 +92,14 @@ exports.createBooking = async (req, res) => {
     const tour = await Tour.findById(tourId);
     if (!tour) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy tour đã chọn' });
+    }
+
+    // Kiểm tra số lượng người
+    if (Number(guestSize) > Number(tour.maxGroupSize)) {
+        return res.status(400).json({ 
+            success: false, 
+            message: `Số người vượt quá giới hạn cho phép (${tour.maxGroupSize} người)` 
+        });
     }
 
     const totalPrice = Number(tour.price || 0) * Number(guestSize || 0);

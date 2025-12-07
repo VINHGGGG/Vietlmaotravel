@@ -24,9 +24,14 @@ const AdminAllBookings = () => {
     // 2. Hàm đổi trạng thái thanh toán (Paid <-> Unpaid)
     const togglePayment = async (booking) => {
         try {
-            const newStatus = !booking.isPaid; // Đảo ngược trạng thái hiện tại
+            const newIsPaid = !booking.isPaid; // Đảo ngược trạng thái hiện tại
+            const newStatus = newIsPaid ? 'approved' : 'pending'; // Nếu đã thanh toán -> Duyệt, ngược lại -> Chờ
+
             await axios.put(`${BASE_URL}/bookings/${booking._id}`, 
-                { isPaid: newStatus }, 
+                { 
+                    isPaid: newIsPaid,
+                    status: newStatus
+                }, 
                 { withCredentials: true }
             );
             // Load lại dữ liệu sau khi sửa

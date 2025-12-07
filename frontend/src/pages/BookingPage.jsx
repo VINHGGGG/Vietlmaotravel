@@ -15,6 +15,7 @@ const BookingPage = () => {
     guestSize: 1,
     bookAt: ''
   });
+  const [maxGroupSize, setMaxGroupSize] = useState(100); // Mặc định
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const { user } = useContext(AuthContext);
@@ -24,6 +25,9 @@ const BookingPage = () => {
       try {
         const res = await axios.get(`${BASE_URL}/tours/${id}`);
         setTour(res.data.data || null);
+        if (res.data.data) {
+            setMaxGroupSize(res.data.data.maxGroupSize || 100);
+        }
       } catch (e) {
         setTour(null);
       }
@@ -54,14 +58,20 @@ const BookingPage = () => {
     setSubmitting(true);
     setError('');
     try {
-      const res = await axios.post(`${BASE_URL}/bookings`, {
+      const bookingInfo = {
         tourId: id,
         fullName: form.fullName,
         userEmail: form.userEmail,
         phone: form.phone,
         guestSize: Number(form.guestSize),
         bookAt: form.bookAt
-      }, {
+      };
+
+      if (user) {
+        bookingInfo.userId = user._id || user.id;
+      }
+
+      const res = await axios.post(`${BASE_URL}/bookings`, bookingInfo, {
         withCredentials: true
       });
       alert(`Đặt tour thành công! Tổng giá: ${Number(res.data.data.totalPrice).toLocaleString('vi-VN')} VNĐ`);
@@ -99,8 +109,16 @@ const BookingPage = () => {
           <input type="tel" name="phone" value={form.phone} onChange={onChange} required />
         </label>
         <label>
-          Số lượng người đi:
-          <input type="number" min="1" name="guestSize" value={form.guestSize} onChange={onChange} required />
+          Số lượng người đi (Tối đa {maxGroupSize}):
+          <input 
+            type="number" 
+            min="1" 
+            max={maxGroupSize}
+            name="guestSize" 
+            value={form.guestSize} 
+            onChange={onChange} 
+            required 
+          />
         </label>
         <label>
           Ngày đặt tour:

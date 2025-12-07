@@ -15,6 +15,7 @@ import HomePage from './pages/HomePage';
 import AdminEditTour from './pages/AdminEditTour';
 import AdminAllBookings from './pages/AdminAllBookings';
 import BookingPage from './pages/BookingPage';
+import MyBookings from './pages/MyBookings';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/" element={<HomePage/>} />
         <Route path="/tours" element={<HomePage/>} />
         <Route path="/booking/:id" element={<BookingPage />} />
+        <Route path="/my-bookings" element={<MyBookings />} />
         
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

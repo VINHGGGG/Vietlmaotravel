@@ -8,6 +8,7 @@ import './header.css';
 const navLinksGuest = [
   { path: '/', display: 'Trang chủ' },
   { path: '/tours', display: 'Tours' },
+  { path: '/my-bookings', display: 'Đơn đặt của tôi' },
 ];
 
 // 2. Menu dành riêng cho Admin
